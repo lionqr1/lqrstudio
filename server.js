@@ -14,11 +14,13 @@ app.get("/", (req, res) => {
 let ffmpegProcess = null;
 
 app.post("/start-stream", (req, res) => {
-  const { inputUrl } = req.body;
+  const { streamKey } = req.body;
 
-  if (!inputUrl) {
-    return res.status(400).json({ error: "inputUrl is required" });
+  if (!streamKey) {
+    return res.status(400).json({ error: "streamKey is required" });
   }
+
+  const inputUrl = `rtmp://localhost/live/${streamKey}`;
 
   if (ffmpegProcess) {
     return res.status(400).json({ error: "Stream already running" });
