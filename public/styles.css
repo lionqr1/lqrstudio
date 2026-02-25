@@ -1,0 +1,71 @@
+:root {
+  color-scheme: dark;
+  --bg: #090e1a;
+  --panel: #111a2d;
+  --line: #7de2ff;
+  --accent: #7bf29a;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #142040, var(--bg));
+  color: #ebf3ff;
+}
+
+.app-shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+header h1,
+header p,
+.controls h2,
+.controls p {
+  margin: 0;
+}
+
+.hud {
+  display: flex;
+  gap: 1.5rem;
+  background: color-mix(in oklab, var(--panel) 92%, white);
+  border: 1px solid #2f4268;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  border: 2px solid #3d6ed6;
+  background: #173822;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+.controls {
+  display: grid;
+  gap: 0.45rem;
+}
+
+button {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: linear-gradient(130deg, #32f18d, #1d96ff);
+  color: #00181a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
