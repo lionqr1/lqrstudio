@@ -5,32 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FIFA Soccer Game</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box} body{font-family:Segoe UI,Arial,sans-serif;background:#0a0a0a;color:#fff;overflow:hidden;width:100vw;height:100vh}
-    #game-container{position:relative;width:100%;height:100%} #game-canvas{display:block;width:100%;height:100%}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Segoe UI,Arial,sans-serif;background:#0a0a0a;color:#fff;overflow:hidden;width:100vw;height:100vh}
+    #game-container{position:relative;width:100%;height:100%}
+    #game-canvas{display:block;width:100%;height:100%}
     .screen{position:fixed;inset:0;display:none;justify-content:center;align-items:center;flex-direction:column;z-index:900;background:linear-gradient(135deg,#1a1a2e,#0a0a0a)}
     .screen.visible{display:flex}
     #loading-screen{display:flex;z-index:1000}
     #loading-screen.hidden{opacity:0;pointer-events:none;transition:opacity .4s}
-    h1{font-weight:900;letter-spacing:.08em} #loading-screen h1,#main-menu h1{font-size:4rem}
-    .subtitle{color:#4CAF50;margin:.5rem 0 2rem}
+    h1{font-weight:900;letter-spacing:.08em}
+    #loading-screen h1,#main-menu h1{font-size:4rem}
+    .subtitle{color:#4CAF50;margin:.5rem 0 1.4rem}
     .progress-bar{width:320px;height:8px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden}
     .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#2d7a2d,#4CAF50)}
     .menu-btn{padding:1rem 2.5rem;font-size:1.05rem;font-weight:700;border:none;border-radius:6px;cursor:pointer;margin:.45rem;min-width:240px}
-    .primary{background:linear-gradient(180deg,#2d7a2d,#1a5a1a);color:#fff}.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2)}
-    #hud{position:fixed;top:0;left:0;width:100%;display:none;pointer-events:none;z-index:100} #hud.visible{display:block}
-    .scoreboard{display:flex;justify-content:center;padding:12px}.scoreboard-inner{display:flex;border-radius:8px;overflow:hidden;background:rgba(0,0,0,.85)}
-    .team-display{display:flex;align-items:center;gap:12px;padding:8px 18px}.team-display.home{background:var(--home-color,#1e40af)}.team-display.away{background:var(--away-color,#ef4444)}
-    .team-score{font-size:2rem;font-weight:900}.team-name{font-weight:700}.match-time{padding:8px 28px;background:#111;display:flex;flex-direction:column;align-items:center}
-    .time-display{font:700 1.6rem monospace}.half-indicator{font-size:.78rem;color:#9ca3af}
+    .primary{background:linear-gradient(180deg,#2d7a2d,#1a5a1a);color:#fff}
+    .secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2)}
+    #hud{position:fixed;top:0;left:0;width:100%;display:none;pointer-events:none;z-index:100}
+    #hud.visible{display:block}
+    .scoreboard{display:flex;justify-content:center;padding:12px}
+    .scoreboard-inner{display:flex;border-radius:8px;overflow:hidden;background:rgba(0,0,0,.85)}
+    .team-display{display:flex;align-items:center;gap:12px;padding:8px 18px}
+    .team-display.home{background:var(--home-color,#1e40af)}
+    .team-display.away{background:var(--away-color,#ef4444)}
+    .team-score{font-size:2rem;font-weight:900}
+    .team-name{font-weight:700}
+    .match-time{padding:8px 28px;background:#111;display:flex;flex-direction:column;align-items:center}
+    .time-display{font:700 1.6rem monospace}
+    .half-indicator{font-size:.78rem;color:#9ca3af}
     .radar{position:fixed;bottom:20px;right:20px;width:200px;height:130px;background:#1a4d1a;border:2px solid #fff;border-radius:4px;opacity:.92}
-    .stamina-container{position:fixed;bottom:18px;left:18px}.stamina-label{font-size:.75rem;color:#aaa;margin-bottom:4px}
-    .stamina-bar{width:160px;height:10px;background:rgba(0,0,0,.55);border-radius:999px;overflow:hidden}.stamina-fill{height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e)}
-    .controls-hint{position:fixed;left:18px;bottom:60px;background:rgba(0,0,0,.7);padding:10px 12px;border-radius:8px;font-size:.75rem}
+    .stamina-container{position:fixed;bottom:18px;left:18px}
+    .stamina-label{font-size:.75rem;color:#aaa;margin-bottom:4px}
+    .stamina-bar{width:160px;height:10px;background:rgba(0,0,0,.55);border-radius:999px;overflow:hidden}
+    .stamina-fill{height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e)}
+    .shot-container{position:fixed;left:18px;bottom:95px}
+    .shot-label{font-size:.75rem;color:#aaa;margin-bottom:4px}
+    .shot-bar{width:160px;height:10px;background:rgba(0,0,0,.55);border-radius:999px;overflow:hidden}
+    .shot-fill{height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#facc15,#ef4444);transition:width .06s linear}
+    .controls-hint{position:fixed;left:18px;bottom:135px;background:rgba(0,0,0,.7);padding:10px 12px;border-radius:8px;font-size:.75rem}
     .controls-hint kbd{background:#333;padding:2px 6px;border-radius:3px;margin-right:6px}
+    #player-indicator{position:fixed;top:78px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:6px 10px;border-radius:999px;font-size:.8rem}
+    #announcement{position:fixed;top:118px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);padding:6px 12px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .2s}
+    #announcement.visible{opacity:1}
     #goal-overlay,#halftime-overlay,#fulltime-overlay,#pause-menu{position:fixed;inset:0;display:none;justify-content:center;align-items:center;flex-direction:column;z-index:600;background:rgba(0,0,0,.8)}
     #goal-overlay.visible,#pause-menu.visible,#halftime-overlay.visible,#fulltime-overlay.visible{display:flex}
     #goal-overlay h1{font-size:7rem;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,.6)}
-    #player-indicator{position:fixed;top:78px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:6px 10px;border-radius:999px;font-size:.8rem}
   </style>
 </head>
 <body>
@@ -38,14 +57,22 @@
 
   <div id="loading-screen"><h1>SOCCER</h1><div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div><p style="margin-top:1rem;color:#666">Loading...</p></div>
 
-  <div class="screen" id="main-menu"><h1>SOCCER</h1><p class="subtitle">3D Football Simulation</p><button class="menu-btn primary" id="quick-match-btn">Quick Match</button><button class="menu-btn secondary" id="exhibition-btn">Exhibition</button><button class="menu-btn secondary" id="settings-btn">Settings</button></div>
+  <div class="screen" id="main-menu">
+    <h1>SOCCER</h1>
+    <p class="subtitle">3D Football Simulation</p>
+    <button class="menu-btn primary" id="quick-match-btn">Quick Match</button>
+    <button class="menu-btn secondary" id="exhibition-btn">Exhibition</button>
+    <button class="menu-btn secondary" id="settings-btn">How to Run</button>
+  </div>
 
   <div id="hud">
     <div class="scoreboard"><div class="scoreboard-inner"><div class="team-display home"><span class="team-name" id="home-name">HOME</span><span class="team-score" id="home-score">0</span></div><div class="match-time"><span class="time-display" id="match-time">00:00</span><span class="half-indicator" id="half-indicator">1ST HALF</span></div><div class="team-display away"><span class="team-score" id="away-score">0</span><span class="team-name" id="away-name">AWAY</span></div></div></div>
     <div class="radar" id="radar"><canvas id="radar-canvas"></canvas></div>
     <div class="stamina-container"><div class="stamina-label">STAMINA</div><div class="stamina-bar"><div class="stamina-fill" id="stamina-fill"></div></div></div>
-    <div class="controls-hint"><div><kbd>WASD</kbd>Move</div><div><kbd>SHIFT</kbd>Sprint</div><div><kbd>SPACE</kbd>Pass / Switch</div><div><kbd>E</kbd>Shoot / Tackle</div><div><kbd>Q</kbd>Through Ball</div><div><kbd>ESC</kbd>Pause</div></div>
+    <div class="shot-container"><div class="shot-label">SHOT POWER (hold E)</div><div class="shot-bar"><div class="shot-fill" id="shot-fill"></div></div></div>
+    <div class="controls-hint"><div><kbd>WASD</kbd>Move</div><div><kbd>SHIFT</kbd>Sprint</div><div><kbd>SPACE</kbd>Pass / Switch</div><div><kbd>E</kbd>Hold+Release Shoot / Tackle</div><div><kbd>Q</kbd>Through Ball</div><div><kbd>ESC</kbd>Pause</div></div>
     <div id="player-indicator">Controlled: CM2</div>
+    <div id="announcement">Kickoff!</div>
   </div>
 
   <div id="goal-overlay"><h1>GOAL!</h1><p id="goal-scorer"></p></div>
