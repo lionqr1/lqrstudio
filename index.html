@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FIFA Style Soccer 3D</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Inter, Segoe UI, sans-serif; background: #0a0a0a; color: #fff; overflow: hidden; }
+      #game-container { width: 100vw; height: 100vh; position: relative; }
+      #game-canvas { width: 100%; height: 100%; display: block; }
+      .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 1000; background: rgba(5, 10, 24, 0.9); }
+      .overlay.visible { display: flex; }
+      #loading-screen { display: flex; }
+      .progress-wrap { width: 320px; height: 8px; margin-top: 14px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,0.15); }
+      #progress-fill { width: 0; height: 100%; background: linear-gradient(90deg, #3ac569, #0cb7ff); }
+      .menu-btn { min-width: 240px; border: none; border-radius: 8px; margin: 7px; padding: 12px 20px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+      .menu-btn.primary { color: #fff; background: linear-gradient(180deg, #2d7a2d, #1a5a1a); }
+      .menu-btn.secondary { color: #fff; border: 1px solid #455; background: rgba(255,255,255,0.08); }
+
+      #hud { position: fixed; inset: 0; display: none; pointer-events: none; z-index: 100; }
+      #hud.visible { display: block; }
+      .scoreboard { display: flex; justify-content: center; padding: 12px; }
+      .scoreboard-inner { display: flex; overflow: hidden; border-radius: 10px; background: rgba(0,0,0,.86); }
+      .team-box { display: flex; align-items: center; gap: 12px; padding: 10px 16px; font-weight: 800; }
+      .team-box.home { background: var(--home-color, #a50044); }
+      .team-box.away { background: var(--away-color, #fff); color: #111; }
+      .team-score { font-size: 2rem; }
+      .timer-box { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px 18px; background: #111; }
+      #match-time { font-family: monospace; font-size: 1.45rem; font-weight: 800; }
+      #half-indicator { color: #8ea0b7; font-size: 0.75rem; }
+
+      #radar { position: fixed; right: 16px; bottom: 16px; width: 210px; height: 130px; border: 2px solid #fff; border-radius: 6px; background: #1a4d1a; opacity: .94; }
+      .meter { position: fixed; left: 16px; width: 170px; }
+      .meter-label { font-size: 0.7rem; color: #9ca3af; margin-bottom: 4px; }
+      .meter-bg { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(0,0,0,.55); }
+      #stamina-meter { bottom: 16px; }
+      #shot-meter { bottom: 46px; }
+      #stamina-fill { height: 100%; width: 100%; background: linear-gradient(90deg,#ef4444,#f59e0b,#22c55e); }
+      #shot-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#22c55e,#facc15,#ef4444); }
+
+      #controls-hint { position: fixed; left: 16px; bottom: 82px; background: rgba(0,0,0,.72); border-radius: 8px; padding: 9px 10px; font-size: .73rem; }
+      #controls-hint kbd { background: #333; border-radius: 4px; padding: 2px 6px; }
+      #player-indicator, #announce { position: fixed; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.55); border-radius: 999px; padding: 6px 10px; }
+      #player-indicator { top: 76px; }
+      #announce { top: 108px; opacity: 0; transition: opacity .2s; }
+      #announce.visible { opacity: 1; }
+
+      #goal-overlay h1 { font-size: 6rem; color: #ffd700; text-shadow: 0 0 30px rgba(255, 215, 0, 0.45); }
+      .team-grid { width: min(560px, 92vw); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+      .team-choice { border: 1px solid #445; border-radius: 8px; background: #11182b; color: #fff; padding: 10px; cursor: pointer; text-align: left; }
+    </style>
+  </head>
+  <body>
+    <div id="game-container"><canvas id="game-canvas"></canvas></div>
+
+    <div id="loading-screen" class="overlay visible">
+      <h1>SOCCER 3D</h1>
+      <div class="progress-wrap"><div id="progress-fill"></div></div>
+      <p style="margin-top: 10px; color: #89a;">Loading assets...</p>
+    </div>
+
+    <div id="main-menu" class="overlay">
+      <h1>SOCCER 3D</h1>
+      <p style="margin: 8px 0 20px; color: #4caf50;">FIFA-style Browser Match</p>
+      <button id="quick-match-btn" class="menu-btn primary">Quick Match</button>
+      <button id="team-select-btn" class="menu-btn secondary">Team Select</button>
+      <button id="help-btn" class="menu-btn secondary">How to Run on GitHub</button>
+    </div>
+
+    <div id="team-select" class="overlay">
+      <h2>Choose Teams</h2>
+      <p id="team-select-step" style="margin-top: 6px; color: #9ca3af;">Pick Home Team</p>
+      <div id="team-grid" class="team-grid"></div>
+      <button id="team-back-btn" class="menu-btn secondary">Back</button>
+    </div>
+
+    <div id="hud">
+      <div class="scoreboard">
+        <div class="scoreboard-inner">
+          <div class="team-box home"><span id="home-name">BAR</span><span class="team-score" id="home-score">0</span></div>
+          <div class="timer-box"><span id="match-time">00:00</span><span id="half-indicator">1ST HALF</span></div>
+          <div class="team-box away"><span class="team-score" id="away-score">0</span><span id="away-name">RMA</span></div>
+        </div>
+      </div>
+
+      <canvas id="radar"></canvas>
+
+      <div id="shot-meter" class="meter">
+        <div class="meter-label">SHOT POWER (HOLD E)</div>
+        <div class="meter-bg"><div id="shot-fill"></div></div>
+      </div>
+      <div id="stamina-meter" class="meter">
+        <div class="meter-label">STAMINA</div>
+        <div class="meter-bg"><div id="stamina-fill"></div></div>
+      </div>
+
+      <div id="controls-hint">
+        <div><kbd>WASD</kbd> Move</div>
+        <div><kbd>SHIFT</kbd> Sprint</div>
+        <div><kbd>SPACE</kbd> Pass / Switch</div>
+        <div><kbd>E</kbd> Shoot / Tackle</div>
+        <div><kbd>Q</kbd> Through Ball</div>
+        <div><kbd>ESC</kbd> Pause</div>
+      </div>
+
+      <div id="player-indicator">Controlled: CM2</div>
+      <div id="announce">Kickoff!</div>
+    </div>
+
+    <div id="goal-overlay" class="overlay"><h1>GOAL!</h1><p id="goal-scorer"></p></div>
+    <div id="halftime-overlay" class="overlay"><h2>HALF TIME</h2></div>
+    <div id="fulltime-overlay" class="overlay"><h2 id="fulltime-text">FULL TIME</h2><button id="play-again-btn" class="menu-btn primary">Play Again</button></div>
+    <div id="pause-menu" class="overlay"><h2>PAUSED</h2><button id="resume-btn" class="menu-btn primary">Resume</button><button id="restart-btn" class="menu-btn secondary">Restart Match</button><button id="quit-btn" class="menu-btn secondary">Quit to Menu</button></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
